@@ -30,7 +30,7 @@ export class IProxy extends EventEmitter {
       rl.on('line', (line: string) => logger.appendLine(`[iproxy ${this.remote}] ${line}`));
     }
 
-    const MAX = 5;
+    const MAX = 50;
     for (let i = 0; i < MAX; i++) {
       await sleep(100);
 
@@ -86,7 +86,9 @@ export async function ssh(uuid: string): Promise<IProxy> {
   const iproxy = new IProxy('ssh', uuid);
   map.set(uuid, iproxy);
   await iproxy.start();
-  iproxy.on('close', () => { map.delete(uuid) });
+  const remove = () => { map.delete(uuid) };
+  iproxy.on('close', remove);
+  iproxy.on('error', remove);
   return iproxy;
 }
 
